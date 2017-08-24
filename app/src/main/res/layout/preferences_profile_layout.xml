@@ -25,14 +25,13 @@
     android:layout_height="match_parent"
     >
 
-    <LinearLayout android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:orientation="vertical"
-        >
+    <LinearLayout android:orientation="vertical"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content">
 
         <FrameLayout
             android:layout_width="@dimen/team_tabs_max_width"
-            android:layout_height="@dimen/preference_button_height"
+            android:layout_height="@dimen/teams_tab_default_height"
             android:layout_gravity="center"
             >
             <com.waz.zclient.views.AccountTabsView
@@ -53,17 +52,26 @@
             android:gravity="center"
             android:textSize="@dimen/wire__text_size__medium"
             app:font="@string/wire__typeface__light"
-            android:layout_marginTop="@dimen/wire__padding__8"
             />
 
         <com.waz.zclient.ui.text.TypefaceTextView
             android:id="@+id/profile_user_handle"
             android:layout_width="match_parent"
             android:gravity="center"
-            android:textSize="@dimen/wire__text_size__regular"
+            android:textSize="@dimen/wire__text_size__small"
             android:layout_height="wrap_content"
             app:font="@string/wire__typeface__light"
-            android:layout_marginTop="@dimen/wire__padding__8"
+            android:layout_marginTop="@dimen/wire__padding__4"
+            />
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/profile_user_team"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/wire__padding__4"
+            android:gravity="top|center_horizontal"
+            android:textSize="@dimen/wire__text_size__small"
+            app:font="@string/wire__typeface__light"
             />
 
         <FrameLayout
@@ -90,16 +98,6 @@
 
         </FrameLayout>
 
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/profile_user_team"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/preference_button_height"
-            android:layout_marginTop="@dimen/wire__padding__8"
-            android:gravity="top|center_horizontal"
-            android:textSize="@dimen/wire__text_size__regular"
-            app:font="@string/wire__typeface__light"
-            />
-
         <com.waz.zclient.pages.main.profile.preferences.views.TextButton
             android:id="@+id/profile_create_team"
             android:layout_width="match_parent"
@@ -125,5 +123,6 @@
             />
 
     </LinearLayout>
+
 
 </ScrollView>

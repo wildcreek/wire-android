@@ -121,11 +121,13 @@ class NormalTopToolbar(override val context: Context, override val attrs: Attrib
     }
     super.setScrolledToTop(scrolledToTop)
     if (tabsContainer.isVisible) {
-      (0 until tabsContainer.getChildCount).map(tabsContainer.getChildAt).foreach{ child =>
-        if (scrolledToTop)
-          child.asInstanceOf[AccountTabButton].animateExpand()
-        else
-          child.asInstanceOf[AccountTabButton].animateCollapse()
+      (0 until tabsContainer.getChildCount).map(tabsContainer.getChildAt).foreach{
+        case child: AccountTabButton =>
+          if (scrolledToTop)
+            child.animateExpand()
+          else
+            child.animateCollapse()
+        case _ =>
       }
     }
   }

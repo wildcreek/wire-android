@@ -21,7 +21,7 @@ import android.content.Context
 import android.graphics._
 import android.graphics.drawable.Drawable
 import com.waz.ZLog
-import com.waz.model.AssetId
+import com.waz.model.{AssetData, AssetId}
 import com.waz.service.ZMessaging
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
 import com.waz.service.images.BitmapSignal
@@ -85,15 +85,25 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext, ctx: 
   val assetId = Signal(Option.empty[AssetId])
   val bounds = Signal[Rect]()
   val zms = inject[Signal[ZMessaging]]
+
   val bmp = for{
     z <- zms
-    Some(assetId) <- assetId
-    asset <- z.assetsStorage.signal(assetId)
+    asset <- assetId.flatMap {
+      case Some(aId) => z.assetsStorage.signal(aId).map(Option(_))
+      case _ => Signal.const(Option.empty[AssetData])
+    }
     b <- bounds
-    bmp <- BitmapSignal(z, asset, Single(b.width))
+    bmp <- asset.fold {
+      Signal.const(Option.empty[Bitmap])
+    } { assetData =>
+      BitmapSignal(z, asset, Single(b.width)).collect { case BitmapLoaded(bm, _) => Option(bm) }
+    }
   } yield bmp
 
-  bmp.on(Threading.Ui){ _ =>
+  private var currentBmp = Option.empty[Bitmap]
+
+  bmp.onUi{ bitmap =>
+    currentBmp = bitmap
     invalidateSelf()
   }
 
@@ -103,8 +113,8 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext, ctx: 
 
   override def draw(canvas: Canvas) = {
     canvas.drawPath(innerPath, innerPaint)
-    bmp.currentValue match {
-      case Some(BitmapLoaded(bitmap, _)) =>
+    currentBmp match {
+      case Some(bitmap) =>
         matrix.reset()
         computeMatrix(bitmap.getWidth, bitmap.getHeight, getBounds, matrix)
         canvas.drawBitmap(bitmap, matrix, bitmapPaint)

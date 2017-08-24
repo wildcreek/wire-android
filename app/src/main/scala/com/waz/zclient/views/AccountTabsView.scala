@@ -28,6 +28,7 @@ import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, EventStream}
 import com.waz.zclient.controllers.UserAccountsController
+import com.waz.zclient.pages.main.profile.preferences.views.ProfileAccountTab
 import com.waz.zclient.{Injectable, Injector, ViewHelper}
 
 class AccountTabsView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends RecyclerView(context, attrs, defStyleAttr) with ViewHelper {
@@ -45,7 +46,7 @@ class AccountTabsView(val context: Context, val attrs: AttributeSet, val defStyl
   setAdapter(adapter)
 }
 
-class AccountTabViewHolder(view: AccountTabButton) extends RecyclerView.ViewHolder(view){
+class AccountTabViewHolder(view: ProfileAccountTab) extends RecyclerView.ViewHolder(view){
   def bind(accountId: AccountId): Unit = view.setAccount(accountId)
 }
 
@@ -74,10 +75,10 @@ class AccountTabsAdapter(context: Context)(implicit injector: Injector, eventCon
   }
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int) = {
-    val view = new AccountTabButton(context)
+    val view = new ProfileAccountTab(context)
     view.setOnClickListener(new OnClickListener {
       override def onClick(v: View) = {
-        Option(v.asInstanceOf[AccountTabButton]).flatMap(_.account.currentValue).foreach(onItemClick ! _)
+        Option(v.asInstanceOf[ProfileAccountTab]).flatMap(_.account.currentValue).foreach(onItemClick ! _)
       }
     })
     new AccountTabViewHolder(view)
