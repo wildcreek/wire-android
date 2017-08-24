@@ -109,8 +109,8 @@ class PreferencesActivity extends BaseActivity
     val currentAccount = currentAccountPref.signal.currentValue.flatten
     currentAccountPref.signal.onUi { acc =>
       if (acc != currentAccount) {
-        startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
-        finish()
+        //startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
+        //finish()
       }
     }
 

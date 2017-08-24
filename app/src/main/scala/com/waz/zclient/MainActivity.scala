@@ -139,7 +139,7 @@ class MainActivity extends BaseActivity
     val currentAccount = ZMessaging.currentAccounts.activeAccountPref.signal.currentValue.flatten
 
     Signal(themeController.darkThemeSet, ZMessaging.currentAccounts.activeAccountPref.signal).onUi {
-      case (theme, acc) if acc != currentAccount || theme != currentlyDarkTheme => restartActivity()
+      case (theme, acc) if /*acc != currentAccount ||*/ theme != currentlyDarkTheme => restartActivity()
       case _ =>
     }
 

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Wire
+    Copyright (C) 2017 Wire Swiss GmbH
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/conversation_row_container"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/conversation_list__row__height">
+
+    <ImageView
+        android:id="@+id/conversation_icon"
+        android:layout_width="@dimen/conversation_list__avatar__size"
+        android:layout_height="@dimen/conversation_list__avatar__size"
+        android:layout_gravity="center"
+        android:layout_marginEnd="@dimen/conversation_list__avatar__outer_margin"
+        android:layout_marginStart="@dimen/conversation_list__avatar__outer_margin"
+        app:srcCompat="@drawable/list_row_chathead_loading"/>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        >
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+        <View
+            android:layout_marginTop="0.5dp"
+            android:id="@+id/conversation_title"
+            android:layout_width="match_parent"
+            android:layout_height="12dp"
+            android:layout_marginEnd="64dp"
+            android:background="@drawable/conv_row_title_loading"
+            />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+        <View
+            android:id="@+id/conversation_separator"
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/white_8"
+            />
+
+    </LinearLayout>
+
+</LinearLayout>

@@ -65,7 +65,7 @@ class ConversationAvatarView (context: Context, attrs: AttributeSet, style: Int)
         chatheads.foreach(_.clearUser())
         avatarGroupSingle.setUserId(members.head)
       case ConversationType.Group =>
-        val shuffledIds = ConversationAvatarView.shuffle(members, convId)
+        val shuffledIds = ConversationAvatarView.shuffle(members.sortBy(_.str), convId)
         avatarGroupSingle.clearUser()
         chatheads.map(Some(_)).zipAll(shuffledIds.take(4).map(Some(_)), None, None).foreach{
           case (Some(view), Some(uid)) =>

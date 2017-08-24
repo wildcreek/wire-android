@@ -94,12 +94,10 @@ class NormalTopToolbar(override val context: Context, override val attrs: Attrib
   val controller = inject[UserAccountsController]
 
   glyphButton.setText(R.string.glyph__profile)
-  controller.accounts.on(Threading.Ui) { accounts =>
-    tabsContainer.setVisible(accounts.size != 1)
-    title.setVisible(accounts.size == 1)
-    separatorDrawable.setDuration(if (accounts.size == 1) 0 else animationDuration)
-    onTabsChanged(tabsContainer)
-  }
+  tabsContainer.setVisible(false)
+  title.setVisible(true)
+  separatorDrawable.setDuration(0)
+  onTabsChanged(tabsContainer)
 
   tabsContainer.addOnLayoutChangeListener(new OnLayoutChangeListener {
     override def onLayoutChange(v: View, left: Int, top: Int, right: Int, bottom: Int, oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int): Unit = {

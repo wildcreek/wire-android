@@ -28,7 +28,7 @@
         android:id="@+id/conversation_list_top_toolbar"
         android:layout_gravity="top"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/conversation_list_toolbar_height"
+        android:layout_height="?attr/actionBarSize"
         />
 
     <LinearLayout
@@ -67,19 +67,39 @@
             android:visibility="gone"/>
     </LinearLayout>
 
-    <com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
-        android:id="@+id/conversation_list_view"
+    <LinearLayout
+        android:id="@+id/conversation_list_loading_indicator"
         android:layout_marginTop="?attr/actionBarSize"
         android:layout_marginBottom="@dimen/conversation_list__action_view__height"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        />
+        android:orientation="vertical"
+        >
+
+        <include  layout="@layout/conv_list_item_loading" />
+        <include  layout="@layout/conv_list_item_loading" />
+        <include  layout="@layout/conv_list_item_loading" />
+        <include  layout="@layout/conv_list_item_loading" />
+        <include  layout="@layout/conv_list_item_loading" />
+        <include  layout="@layout/conv_list_item_loading" />
+        <include  layout="@layout/conv_list_item_loading" />
+
+    </LinearLayout>
 
     <com.waz.zclient.pages.main.conversationlist.views.ListActionsView
         android:id="@+id/lav__conversation_list_actions"
         android:layout_width="match_parent"
         android:layout_height="@dimen/conversation_list__action_view__height"
         android:layout_gravity="bottom"
+        />
+
+    <com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
+        android:id="@+id/conversation_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="@dimen/conversation_list__action_view__height"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:visibility="invisible"
         />
 
 </FrameLayout>

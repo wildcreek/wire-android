@@ -18,6 +18,7 @@
 package com.waz.zclient.fragments
 
 import android.os.Bundle
+import android.support.v7.widget.RecyclerView.AdapterDataObserver
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
@@ -55,8 +56,10 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
   val layoutId: Int
   lazy val userAccountsController = inject[UserAccountsController]
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
-    val view = inflater.inflate(layoutId, container, false)
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
+    inflater.inflate(layoutId, container, false)
+
+  override def onViewCreated(view: View, savedInstanceState: Bundle) = {
     val topToolbar = ViewUtils.getView(view, R.id.conversation_list_top_toolbar).asInstanceOf[ConversationListTopToolbar]
 
     val adapter = returning(new ConversationListAdapter(getContext)) { a =>
@@ -85,8 +88,6 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
     adapter.onConversationLongClick { handleItemLongClick(_, conversationListView) }
 
     init(view, adapter)
-
-    view
   }
 
   def init(view: View, adapter: ConversationListAdapter): Unit
@@ -192,9 +193,11 @@ class NormalConversationFragment extends ConversationListFragment {
     convs.conversations.exists(c => c.archived && !c.hidden))
   }
 
+  lazy val conversationListView = ViewUtils.getView(getView, R.id.conversation_list_view).asInstanceOf[SwipeListView]
+  lazy val loadingListView = ViewUtils.getView(getView, R.id.conversation_list_loading_indicator).asInstanceOf[View]
+
 
   override def init(view: View, adapter: ConversationListAdapter): Unit = {
-    val conversationListView = ViewUtils.getView(view, R.id.conversation_list_view).asInstanceOf[SwipeListView]
     val listActionsView = ViewUtils.getView(view, R.id.lav__conversation_list_actions).asInstanceOf[ListActionsView]
     val topToolbar = ViewUtils.getView(view, R.id.conversation_list_top_toolbar).asInstanceOf[NormalTopToolbar]
     val noConvsTitle = ViewUtils.getView(view, R.id.conversation_list_empty_title).asInstanceOf[TypefaceTextView]
@@ -203,6 +206,12 @@ class NormalConversationFragment extends ConversationListFragment {
     conversationListView.addOnScrollListener(new RecyclerView.OnScrollListener {
       override def onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) = {
         listActionsView.setScrolledToBottom(!recyclerView.canScrollVertically(1))
+      }
+    })
+
+    adapter.registerAdapterDataObserver(new AdapterDataObserver {
+      override def onChanged() = {
+        hideLoading()
       }
     })
 
@@ -242,6 +251,28 @@ class NormalConversationFragment extends ConversationListFragment {
         Option(getContainer).foreach(_.showArchive())
       }
     })
+  }
+
+  private def showLoading(): Unit = {
+    conversationListView.setVisible(false)
+    loadingListView.setVisible(true)
+    loadingListView.setAlpha(1f)
+  }
+
+  private def hideLoading(): Unit = {
+    if (!conversationListView.isVisible) {
+      conversationListView.setVisible(true)
+      conversationListView.setAlpha(0f)
+      conversationListView.animate().alpha(1f).setDuration(300)
+      loadingListView.animate().alpha(0f).setDuration(300).withEndAction(new Runnable {
+        override def run() = loadingListView.setVisible(false)
+      })
+    }
+  }
+
+  override def onStart() = {
+    super.onStart()
+    showLoading()
   }
 }
 

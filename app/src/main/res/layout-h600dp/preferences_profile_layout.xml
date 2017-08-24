@@ -24,6 +24,22 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
+    <FrameLayout
+        android:layout_width="@dimen/team_tabs_max_width"
+        android:layout_height="@dimen/preference_button_height"
+        android:layout_gravity="center"
+        >
+        <com.waz.zclient.views.AccountTabsView
+            android:id="@+id/team_tabs_container"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:layout_gravity="center"
+            android:paddingStart="@dimen/wire__padding__12"
+            android:paddingEnd="@dimen/wire__padding__12"
+            />
+    </FrameLayout>
+
     <com.waz.zclient.ui.text.TypefaceTextView
         android:id="@+id/profile_user_name"
         android:layout_width="match_parent"

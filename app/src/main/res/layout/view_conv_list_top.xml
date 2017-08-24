@@ -47,7 +47,6 @@
             android:layout_gravity="center"
             android:paddingStart="@dimen/wire__padding__12"
             android:paddingEnd="@dimen/wire__padding__12"
-            android:visibility="gone"
             />
     </FrameLayout>
 
