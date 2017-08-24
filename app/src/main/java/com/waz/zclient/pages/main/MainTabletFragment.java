@@ -44,7 +44,7 @@ import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
 import com.waz.zclient.pages.main.conversationlist.ConfirmationFragment;
 import com.waz.zclient.utils.SyncErrorUtils;
 import com.waz.zclient.utils.ViewUtils;
-import com.waz.zclient.views.BackgroundFrameLayout;
+import com.waz.zclient.views.BackgroundImageView;
 import com.waz.zclient.views.menus.ConfirmationMenu;
 import net.hockeyapp.android.ExceptionHandler;
 
@@ -62,7 +62,7 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
     public static final String TAG = MainTabletFragment.class.getName();
 
     private ConfirmationMenu confirmationMenu;
-    private BackgroundFrameLayout backgroundLayout;
+    private BackgroundImageView backgroundLayout;
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
