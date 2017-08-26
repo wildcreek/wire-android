@@ -35,6 +35,7 @@ import com.waz.utils._
 import com.waz.utils.events.Signal
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.controllers.global.AccentColorController
+import com.waz.zclient.conversationlist.ConversationListController
 import com.waz.zclient.pages.main.conversationlist.views.ConversationCallback
 import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
 import com.waz.zclient.pages.main.conversationlist.views.row.MenuIndicatorView
@@ -65,6 +66,8 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
 
   inflate(R.layout.conv_list_item)
 
+  val controller = inject[ConversationListController]
+
   val zms = inject[Signal[ZMessaging]]
   val accentColor = inject[AccentColorController].accentColor
   val callPermissionsController = inject[CallPermissionsController]
@@ -86,11 +89,13 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     conv <- ConversationSignal(convId)
   } yield conv
 
+  val members = conversationId.collect { case Some(convId) => convId } flatMap controller.members
+
   val conversationName = for {
     z <- zms
     self <- selfId
     conv <- conversation
-    memberCount <- ConversationMembersSignal(conv.id).map(_.count(_ != self))
+    memberCount <- members.map(_.count(_ != self))
   } yield {
     if (conv.convType == ConversationType.Incoming) {
       (conv.id, getInboxName(memberCount))
@@ -128,15 +133,15 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     lastUnreadMessageUser <- lastUnreadMessages.lastOption.fold2(Signal.const(Option.empty[UserData]), message => UserSignal(message.userId).map(Some(_)))
     lastUnreadMessageMembers <- lastUnreadMessages.lastOption.fold2(Signal.const(Vector[UserData]()), message => UserSetSignal(message.members).map(_.toVector))
     typingUser <- userTyping
-    members <- ConversationMembersSignal(conv.id)
-    otherUser <- members.find(_ != self).fold2(Signal.const(Option.empty[UserData]), uid => UserSignal(uid).map(Some(_)))
+    ms <- members
+    otherUser <- ms.headOption.fold2(Signal.const(Option.empty[UserData]), uid => UserSignal(uid).map(Some(_)))
     lastMessage <- z.messagesStorage.lastMessage(conv.id)
-  } yield (conv.id, subtitleStringForLastMessages(conv, otherUser, members, lastUnreadMessages, lastMessage, lastUnreadMessageUser, lastUnreadMessageMembers, typingUser, self))
+  } yield (conv.id, subtitleStringForLastMessages(conv, otherUser, ms.toSet, lastUnreadMessages, lastMessage, lastUnreadMessageUser, lastUnreadMessageMembers, typingUser, self))
 
   val avatarInfo = for {
     z <- zms
     conv <- conversation
-    memberIds <- ConversationMembersSignal(conv.id)
+    memberIds <- members
     memberSeq <- Signal.sequence(memberIds.map(uid => UserSignal(uid)).toSeq:_*)
   } yield {
     val opacity =

@@ -43,6 +43,7 @@ import com.waz.zclient.controllers.navigation.INavigationController
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.conversation.CollectionController
+import com.waz.zclient.conversationlist.ConversationListController
 import com.waz.zclient.core.stores.IStoreFactory
 import com.waz.zclient.core.stores.network.INetworkStore
 import com.waz.zclient.cursor.CursorController
@@ -157,7 +158,8 @@ object WireApplication {
     bind [UiStorage]                 to new UiStorage()
     bind [BackStackNavigator]        to new BackStackNavigator()
 
-    bind [CursorController]          to new CursorController()
+    bind [CursorController]           to new CursorController()
+    bind [ConversationListController] to new ConversationListController()
 
     /**
       * Since tracking controllers will immediately instantiate other necessary controllers, we keep them separated
