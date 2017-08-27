@@ -80,9 +80,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     if (conversationData.archived || conversationData.muted || conversationData.hidden)
       0
     else
-      conversationData.unreadCount +
-        (if (conversationData.missedCallMessage.isDefined) 1 else 0) +
-        (if (conversationData.incomingKnockMessage.isDefined) 1 else 0)
+      conversationData.unreadCount.total
   }
 
   val unreadCount = for {

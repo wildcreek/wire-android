@@ -72,7 +72,7 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
   val firstVisibleItemPosition = Signal(0)
 
   lazy val counterStr = for {
-    unreadCount <- conv.map(_.unreadCount)
+    unreadCount <- conv.map(_.unreadCount.messages)
     selectedPos <- firstVisibleItemPosition
   } yield (unreadCount > 1, getString(R.string.quick_reply__counter, new Integer(math.max(1, selectedPos + 1)), new Integer(unreadCount)))
 
