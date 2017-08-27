@@ -44,7 +44,7 @@ import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.ui.views.properties.MoveToAnimateable
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{ConversationMembersSignal, ConversationSignal, StringUtils, UiStorage, UserSetSignal, UserSignal, ViewUtils}
+import com.waz.zclient.utils.{ConversationSignal, StringUtils, UiStorage, UserSetSignal, UserSignal, ViewUtils}
 import com.waz.zclient.views.ConversationBadge
 import com.waz.zclient.views.conversationlist.ConversationListRow._
 import com.waz.zclient.{R, ViewHelper}
@@ -91,22 +91,13 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
 
   val members = conversationId.collect { case Some(convId) => convId } flatMap controller.members
 
-  val conversationName = for {
-    z <- zms
-    self <- selfId
-    conv <- conversation
-    memberCount <- members.map(_.count(_ != self))
-  } yield {
-    if (conv.convType == ConversationType.Incoming) {
-      (conv.id, getInboxName(memberCount))
-    } else {
-      if (conv.displayName == "") {
-        // This hack was in the UiModule Conversation implementation
-        // XXX: this is a hack for some random errors, sometimes conv has empty name which is never updated
-        zms.head.map {_.conversations.forceNameUpdate(conv.id)}
-      }
-      (conv.id, conv.displayName)
+  val conversationName = conversation map { conv =>
+    if (conv.displayName == "") {
+      // This hack was in the UiModule Conversation implementation
+      // XXX: this is a hack for some random errors, sometimes conv has empty name which is never updated
+      zms.head foreach {_.conversations.forceNameUpdate(conv.id) }
     }
+    conv.displayName
   }
 
   val userTyping = for {
@@ -163,12 +154,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     }
   }
 
-  conversationName.on(Threading.Ui) {
-    case (convId, text) if conversationData.forall(_.id == convId) =>
-      title.setText(text)
-    case _ =>
-      ZLog.debug("Outdated conversation name")
-  }
+  conversationName.on(Threading.Ui) { title.setText }
 
   subtitleText.on(Threading.Ui) {
     case (convId, text) if conversationData.forall(_.id == convId) =>
@@ -238,8 +224,6 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
       closeImmediate()
     }
   }
-
-  private def getInboxName(convSize: Int): String = getResources.getQuantityString(R.plurals.connect_inbox__link__name, convSize, convSize.toString)
 
   menuIndicatorView.setClickable(false)
   menuIndicatorView.setMaxOffset(menuOpenOffset)
