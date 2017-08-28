@@ -81,7 +81,10 @@ class ImageAssetDrawable(
     state <- bitmapState(im, d.width - p.l - p.r)
   } yield state).disableAutowiring()
 
+  private var _state = Option.empty[State]
+
   state.on(Threading.Ui) { st =>
+    _state = Some(st)
     invalidateSelf()
   }
 
@@ -125,7 +128,7 @@ class ImageAssetDrawable(
       if (prev.forall(p => p.src != state.src || p.bmp.isEmpty != state.bmp.isEmpty)) resetAnimation(state)
     }
 
-    state.currentValue foreach { st =>
+    _state foreach { st =>
       if (!prev.contains(st)) {
         updateDrawingState(st)
         prev = Some(st)
