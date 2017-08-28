@@ -74,15 +74,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:visibility="invisible"
         >
 
-        <include  layout="@layout/conv_list_item_loading" />
-        <include  layout="@layout/conv_list_item_loading" />
-        <include  layout="@layout/conv_list_item_loading" />
-        <include  layout="@layout/conv_list_item_loading" />
-        <include  layout="@layout/conv_list_item_loading" />
-        <include  layout="@layout/conv_list_item_loading" />
-        <include  layout="@layout/conv_list_item_loading" />
+        <include  layout="@layout/conv_list_item_loading_small" />
+        <include  layout="@layout/conv_list_item_loading_regular" />
+        <include  layout="@layout/conv_list_item_loading_large" />
+        <include  layout="@layout/conv_list_item_loading_small" />
+        <include  layout="@layout/conv_list_item_loading_large" />
+        <include  layout="@layout/conv_list_item_loading_regular" />
+        <include  layout="@layout/conv_list_item_loading_small" />
 
     </LinearLayout>
 
@@ -99,7 +100,6 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="@dimen/conversation_list__action_view__height"
         android:layout_marginTop="?attr/actionBarSize"
-        android:visibility="invisible"
         />
 
 </FrameLayout>

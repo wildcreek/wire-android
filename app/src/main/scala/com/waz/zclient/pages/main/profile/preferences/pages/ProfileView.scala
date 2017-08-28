@@ -18,9 +18,8 @@
 package com.waz.zclient.pages.main.profile.preferences.pages
 
 import android.app.AlertDialog
-import android.content.{Context, DialogInterface, Intent}
+import android.content.{Context, DialogInterface}
 import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.util.AttributeSet
@@ -28,14 +27,13 @@ import android.view.View
 import android.view.View.OnClickListener
 import android.widget.{ImageView, LinearLayout}
 import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.AccentColor
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
-import com.waz.utils.NameParts
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient._
-import com.waz.zclient.drawables.TeamIconDrawable
 import com.waz.zclient.pages.main.profile.preferences.views.TextButton
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiStorage, UserSignal, ZTimeFormatter}
@@ -67,20 +65,17 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val userNameText = findById[TypefaceTextView](R.id.profile_user_name)
   val userPicture = findById[ImageView](R.id.profile_user_picture)
   val userHandleText = findById[TypefaceTextView](R.id.profile_user_handle)
-  val teamPicture = findById[ImageView](R.id.profile_user_team_icon)
   val teamNameText = findById[TypefaceTextView](R.id.profile_user_team)
-
-  val createTeamButton = findById[TextButton](R.id.profile_create_team)
+  val notificationsButton = findById[TextButton](R.id.profile_notifications)
   val addAccountButton = findById[TextButton](R.id.profile_add_account)
   val settingsButton = findById[TextButton](R.id.profile_settings)
 
   override val onDevicesDialogAccept = EventStream[Unit]()
-  private lazy val teamDrawable = new TeamIconDrawable
 
   private var deviceDialog = Option.empty[AlertDialog]
 
-  createTeamButton.onClickEvent.onUi{ _ =>
-    context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.create_team_url))))
+  notificationsButton.onClickEvent.onUi{ _ =>
+    navigator.goTo(OptionsBackStackKey())
   }
 
   addAccountButton.onClickEvent.on(Threading.Ui) { _ =>
@@ -107,11 +102,8 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   override def setTeamName(name: Option[String]) = {
     name match {
       case Some(teamName) =>
-        teamDrawable.setInfo(NameParts.maybeInitial(teamName).getOrElse(""), TeamIconDrawable.TeamCorners, selected = false)
-        teamPicture.setImageDrawable(teamDrawable)
         teamNameText.setText(context.getString(R.string.preferences_profile_in_team, teamName))
       case None =>
-        teamPicture.setImageDrawable(null)
         teamNameText.setText("")
     }
   }
@@ -171,7 +163,7 @@ object ProfileView {
 
 case class ProfileBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
 
-  override def nameId: Int = R.string.pref_profile_screen_title
+  override def nameId: Int = R.string.empty_string
 
   override def layoutId = R.layout.preferences_profile
 
@@ -191,9 +183,11 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
   val zms = inject[Signal[ZMessaging]]
   implicit val uiStorage = inject[UiStorage]
 
+  val currentUser = ZMessaging.currentAccounts.activeAccount.collect { case Some(account) if account.userId.isDefined => account.userId.get }
+
   val self = for {
-    zms <- zms
-    self <- UserSignal(zms.selfUserId)
+    userId <- currentUser
+    self <- UserSignal(userId)
   } yield self
 
   val team = zms.flatMap(_.teams.selfTeam)

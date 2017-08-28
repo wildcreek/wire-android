@@ -30,7 +30,7 @@ import com.localytics.android.Localytics
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, warn}
 import com.waz.api.{NetworkMode, _}
-import com.waz.model.ConvId
+import com.waz.model.{AccountId, ConvId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -131,7 +131,7 @@ class MainActivity extends BaseActivity
 
     Option(getIntent).flatMap(i => Option(i.getExtras)).map(_.getBoolean(MainActivity.OpenSettingsArg, false)) match {
       case Some(true) =>
-        startActivity(PreferencesActivity.getDefaultIntent(this))
+        startActivityForResult(PreferencesActivity.getDefaultIntent(this), PreferencesActivity.SwitchAccountCode)
       case _ =>
     }
 
@@ -139,7 +139,7 @@ class MainActivity extends BaseActivity
     val currentAccount = ZMessaging.currentAccounts.activeAccountPref.signal.currentValue.flatten
 
     Signal(themeController.darkThemeSet, ZMessaging.currentAccounts.activeAccountPref.signal).onUi {
-      case (theme, acc) if /*acc != currentAccount ||*/ theme != currentlyDarkTheme => restartActivity()
+      case (theme, acc) if theme != currentlyDarkTheme => restartActivity()
       case _ =>
     }
 
@@ -256,6 +256,12 @@ class MainActivity extends BaseActivity
     super.onActivityResult(requestCode, resultCode, data)
     Option(ZMessaging.currentGlobal).foreach(_.googleApi.onActivityResult(requestCode, resultCode))
     getSupportFragmentManager.findFragmentById(R.id.fl_main_content).onActivityResult(requestCode, resultCode, data)
+
+    if (requestCode == PreferencesActivity.SwitchAccountCode && data != null) {
+      Option(data.getStringExtra(PreferencesActivity.SwitchAccountExtra)).foreach { extraStr =>
+        ZMessaging.currentAccounts.switchAccount(AccountId(extraStr))
+      }
+    }
   }
 
   override protected def onNewIntent(intent: Intent) = {

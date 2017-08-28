@@ -17,12 +17,15 @@
  */
 package com.waz.zclient.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.RecyclerView.AdapterDataObserver
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
-import com.waz.model.ConversationData
+import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
+import com.waz.model.{AccountId, ConversationData, UserId}
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
@@ -185,6 +188,11 @@ class NormalConversationFragment extends ConversationListFragment {
     clients <- acc.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
   } yield (color.getColor(), clients)
 
+  private lazy val unreadCount = for {
+    Some(accountId) <- ZMessaging.currentAccounts.activeAccountPref.signal
+    count  <- userAccountsController.unreadCount.map(_.filterNot(_._1 == accountId).values.sum)
+  } yield count
+
   lazy val hasConversationsAndArchive = for {
     z <- zms
     convs <- z.convsStorage.convsSignal
@@ -193,12 +201,28 @@ class NormalConversationFragment extends ConversationListFragment {
     convs.conversations.exists(c => c.archived && !c.hidden))
   }
 
+  lazy val listActionsView = ViewUtils.getView(getView, R.id.lav__conversation_list_actions).asInstanceOf[ListActionsView]
   lazy val conversationListView = ViewUtils.getView(getView, R.id.conversation_list_view).asInstanceOf[SwipeListView]
   lazy val loadingListView = ViewUtils.getView(getView, R.id.conversation_list_loading_indicator).asInstanceOf[View]
 
+  private var adapter = Option.empty[ConversationListAdapter]
+  private val waitingAccount = Signal[Option[AccountId]](None)
+
+  val loading = for {
+    Some(waitingAcc) <- waitingAccount
+    adapterAccount <- adapter.fold(Signal.empty[AccountId])(_.conversationListData.map(_._1))
+  } yield waitingAcc != adapterAccount
+
+  loading.onUi {
+    case true => showLoading()
+    case false =>
+      hideLoading()
+      waitingAccount ! None
+  }
 
   override def init(view: View, adapter: ConversationListAdapter): Unit = {
-    val listActionsView = ViewUtils.getView(view, R.id.lav__conversation_list_actions).asInstanceOf[ListActionsView]
+    this.adapter = Some(adapter)
+
     val topToolbar = ViewUtils.getView(view, R.id.conversation_list_top_toolbar).asInstanceOf[NormalTopToolbar]
     val noConvsTitle = ViewUtils.getView(view, R.id.conversation_list_empty_title).asInstanceOf[TypefaceTextView]
     val noConvsSubtitle = ViewUtils.getView(view, R.id.conversation_list_empty_subtitle).asInstanceOf[TypefaceTextView]
@@ -211,7 +235,7 @@ class NormalConversationFragment extends ConversationListFragment {
 
     adapter.registerAdapterDataObserver(new AdapterDataObserver {
       override def onChanged() = {
-        hideLoading()
+        ZLog.verbose(s"Conversation list changed")
       }
     })
 
@@ -233,11 +257,11 @@ class NormalConversationFragment extends ConversationListFragment {
         listActionsView.setArchiveEnabled(archive)
     }
 
-    topToolbar.onRightButtonClick{ _ => startActivity(PreferencesActivity.getDefaultIntent(getContext)) }
+    topToolbar.onRightButtonClick { _ => getActivity.startActivityForResult(PreferencesActivity.getDefaultIntent(getContext), PreferencesActivity.SwitchAccountCode) }
 
-    incomingClients.on(Threading.Ui) {
-      case (color, clients) =>
-        topToolbar.setIndicatorVisible(clients.nonEmpty)
+    Signal(unreadCount.orElse(Signal.const(0)), incomingClients).on(Threading.Ui) {
+      case (count, (color, clients)) =>
+        topToolbar.setIndicatorVisible(clients.nonEmpty || count > 0)
         topToolbar.setIndicatorColor(color)
     }
 
@@ -254,25 +278,33 @@ class NormalConversationFragment extends ConversationListFragment {
   }
 
   private def showLoading(): Unit = {
-    conversationListView.setVisible(false)
-    loadingListView.setVisible(true)
+    conversationListView.setVisibility(View.INVISIBLE)
+    loadingListView.setVisibility(View.VISIBLE)
     loadingListView.setAlpha(1f)
+    listActionsView.setAlpha(0.5f)
   }
 
   private def hideLoading(): Unit = {
     if (!conversationListView.isVisible) {
-      conversationListView.setVisible(true)
+      conversationListView.setVisibility(View.VISIBLE)
       conversationListView.setAlpha(0f)
-      conversationListView.animate().alpha(1f).setDuration(300)
-      loadingListView.animate().alpha(0f).setDuration(300).withEndAction(new Runnable {
-        override def run() = loadingListView.setVisible(false)
+      conversationListView.animate().alpha(1f).setDuration(500)
+      listActionsView.animate().alpha(1f).setDuration(500)
+      loadingListView.animate().alpha(0f).setDuration(500).withEndAction(new Runnable {
+        override def run() = loadingListView.setVisibility(View.INVISIBLE)
       })
     }
   }
 
   override def onStart() = {
     super.onStart()
-    showLoading()
+  }
+
+  override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {
+    if (requestCode == PreferencesActivity.SwitchAccountCode && data != null) {
+      showLoading()
+      waitingAccount ! Some(AccountId(data.getStringExtra(PreferencesActivity.SwitchAccountExtra)))
+    }
   }
 }
 

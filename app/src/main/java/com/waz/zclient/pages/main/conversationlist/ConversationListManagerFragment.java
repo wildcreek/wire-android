@@ -260,8 +260,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Fragment fragment = getChildFragmentManager().findFragmentById(R.id.fl__left__camera);
-        if (fragment != null) {
+        for (Fragment fragment : getChildFragmentManager().getFragments()) {
             fragment.onActivityResult(requestCode, resultCode, data);
         }
     }

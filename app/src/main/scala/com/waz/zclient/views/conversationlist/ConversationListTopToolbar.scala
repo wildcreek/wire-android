@@ -21,17 +21,22 @@ import android.content.Context
 import android.util.{AttributeSet, TypedValue}
 import android.view.View
 import android.view.View.{OnClickListener, OnLayoutChangeListener}
-import android.widget.FrameLayout
+import android.widget.{FrameLayout, ImageView}
 import com.waz.ZLog
-import com.waz.threading.Threading
-import com.waz.utils.events.EventStream
+import com.waz.model.{AssetId, TeamData}
+import com.waz.service.ZMessaging
+import com.waz.utils.NameParts
+import com.waz.utils.events.{EventStream, Signal}
+import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.controllers.UserAccountsController
-import com.waz.zclient.drawables.ListSeparatorDrawable
-import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
+import com.waz.zclient.drawables.{ListSeparatorDrawable, TeamIconDrawable}
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.views.CircleView
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.RichView
-import com.waz.zclient.views.{AccountTabButton, AccountTabsView}
+import com.waz.zclient.utils.{RichView, UiStorage, UserSignal}
+import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
+import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
+import com.waz.zclient.views.{AccountTabButton, AccountTabsView, GlyphButton, ImageAssetDrawable}
 import com.waz.zclient.{R, ViewHelper}
 
 
@@ -42,7 +47,8 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
   inflate(R.layout.view_conv_list_top)
 
   val bottomBorder = findById[View](R.id.conversation_list__border)
-  val glyphButton = findById[GlyphTextView](R.id.conversation_list_settings)
+  val profileButton = findById[ImageView](R.id.conversation_list_settings)
+  val closeButton = findById[GlyphButton](R.id.conversation_list_close)
   val title = findById[TypefaceTextView](R.id.conversation_list_title)
   val settingsIndicator = findById[CircleView](R.id.conversation_list_settings_indicator)
   val tabsContainer = findById[AccountTabsView](R.id.team_tabs_container)
@@ -55,7 +61,14 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
 
   setClipChildren(false)
   bottomBorder.setBackground(separatorDrawable)
-  glyphButton.setOnClickListener(new OnClickListener {
+
+  closeButton.setOnClickListener(new OnClickListener {
+    override def onClick(v: View) = {
+      onRightButtonClick ! v
+    }
+  })
+
+  profileButton.setOnClickListener(new OnClickListener {
     override def onClick(v: View) = {
       onRightButtonClick ! v
     }
@@ -91,9 +104,29 @@ class NormalTopToolbar(override val context: Context, override val attrs: Attrib
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
 
+  val zms = inject[Signal[ZMessaging]]
   val controller = inject[UserAccountsController]
+  implicit val uiStorage = inject[UiStorage]
 
-  glyphButton.setText(R.string.glyph__profile)
+  val drawable = new TeamIconDrawable()
+  val info = for {
+    z <- zms
+    user <- UserSignal(z.selfUserId)
+    team <- z.teams.selfTeam
+  } yield (user, team)
+
+  info.onUi {
+    case (user, Some(team)) =>
+      drawable.assetId ! None
+      drawable.setInfo(NameParts.maybeInitial(team.name).getOrElse(""), TeamIconDrawable.TeamCorners, selected = false)
+    case (user, _) =>
+      drawable.assetId ! user.picture
+      drawable.setInfo(NameParts.maybeInitial(user.displayName).getOrElse(""), TeamIconDrawable.UserCorners, selected = false)
+  }
+  profileButton.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+  profileButton.setImageDrawable(drawable)
+  profileButton.setVisible(true)
+  closeButton.setVisible(false)
   tabsContainer.setVisible(false)
   title.setVisible(true)
   separatorDrawable.setDuration(0)
@@ -146,7 +179,8 @@ class ArchiveTopToolbar(override val context: Context, override val attrs: Attri
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
 
-  glyphButton.setText(R.string.glyph__close)
+  profileButton.setVisible(false)
+  closeButton.setVisible(true)
   settingsIndicator.setVisible(false)
   tabsContainer.setVisible(false)
   title.setVisible(true)

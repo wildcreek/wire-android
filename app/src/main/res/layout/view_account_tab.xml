@@ -36,7 +36,7 @@
         android:id="@+id/unread_indicator_icon"
         android:layout_width="@dimen/unread_indicator_top_size"
         android:layout_height="@dimen/unread_indicator_top_size"
-        android:layout_gravity="top|end"
+        android:layout_gravity="center"
         android:visibility="gone"
         android:layout_marginEnd="@dimen/unread_indicator_top_margin"
         android:layout_marginTop="@dimen/unread_indicator_top_margin"

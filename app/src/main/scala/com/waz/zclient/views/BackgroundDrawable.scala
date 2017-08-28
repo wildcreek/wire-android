@@ -52,7 +52,7 @@ class BackgroundDrawable(src: Signal[ImageSource],
 
   private val bmp = for {
     src <- src
-    bmp <- images.imageSignal(src, RequestBuilder.Single(screenSize.width), forceDownload = true).collect { case BitmapLoaded(bm, _) => bm }
+    bmp <- images.imageSignal(src, RequestBuilder.Single(Math.min(screenSize.width, 300)), forceDownload = true).collect { case BitmapLoaded(bm, _) => bm }
   } yield bmp
 
   private val colorMatrix = new ColorMatrix
@@ -90,7 +90,7 @@ class BackgroundDrawable(src: Signal[ImageSource],
 
         Some(copiedBmp)
       } catch {
-        case _: Throwable => Some(bmp)
+        case _: Throwable => None // Out of memory
       }
 
     animator.start()

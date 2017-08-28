@@ -21,6 +21,7 @@ import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.view.View.OnLongClickListener
 import android.view.{View, ViewGroup}
+import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.error
 import com.waz.api.IConversation
@@ -46,39 +47,38 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
 
   var _conversations = Seq.empty[ConversationData]
   var _incomingRequests = (Seq.empty[ConversationData], Seq.empty[UserId])
+  var _currentAccount = Option.empty[AccountId]
 
-  lazy val conversations = for {
+  lazy val conversationListData = for {
     z             <- zms
     processing    <- z.push.processing
     if !processing
     conversations <- z.convsStorage.convsSignal
+    incomingConvs = conversations.conversations.filter(Incoming.filter).toSeq
+    members <- Signal.sequence(incomingConvs.map(c => z.membersStorage.activeMembers(c.id).map(_.find(_ != z.selfUserId))):_*)
     mode <- currentMode
-  } yield
-    conversations.conversations
+  } yield {
+    val regular = conversations.conversations
       .filter{ conversationData =>
         mode.filter(conversationData)
       }
       .toSeq
       .sorted(mode.sort)
-
-  lazy val incomingRequests = for {
-    z             <- zms
-    processing    <- z.push.processing
-    if !processing
-    conversations <- z.convsStorage.convsSignal.map(_.conversations.filter(Incoming.filter).toSeq)
-    members <- Signal.sequence(conversations.map(c => z.membersStorage.activeMembers(c.id).map(_.find(_ != z.selfUserId))):_*)
-    mode <- currentMode
-  } yield if (mode == Normal) (conversations, members.flatten) else (Seq(), Seq())
+    val incoming = if (mode == Normal) (incomingConvs, members.flatten) else (Seq(), Seq())
+    (z.accountId, regular, incoming)
+  }
 
   val onConversationClick = EventStream[ConversationData]()
   val onConversationLongClick = EventStream[ConversationData]()
 
   var maxAlpha = 1.0f
 
-  Signal(conversations, incomingRequests).on(Threading.Ui) {
-    case (convs, requests) =>
+  conversationListData.on(Threading.Ui) {
+    case (currentAccount, convs, requests) =>
       _conversations = convs
       _incomingRequests = requests
+      _currentAccount = Some(currentAccount)
+      ZLog.verbose(s"conv update => $convs, $requests")
       notifyDataSetChanged()
   }
 

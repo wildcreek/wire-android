@@ -29,7 +29,7 @@ import android.support.v4.app.{Fragment, FragmentManager, FragmentTransaction}
 import android.support.v4.widget.TextViewCompat
 import android.support.v7.widget.{AppCompatTextView, Toolbar}
 import android.view.{MenuItem, View, ViewGroup}
-import android.widget.{TextSwitcher, TextView, Toast, ViewSwitcher}
+import android.widget._
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.ImageAsset
 import com.waz.content.GlobalPreferences.CurrentAccountPref
@@ -45,7 +45,10 @@ import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
 import com.waz.zclient.pages.main.profile.preferences.pages.{DevicesBackStackKey, OptionsView, ProfileBackStackKey}
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, RingtoneUtils, ViewUtils}
+import com.waz.zclient.views.AccountTabsView
 import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
+
+import scala.concurrent.Future
 
 class PreferencesActivity extends BaseActivity
   with ActivityHelper
@@ -53,7 +56,9 @@ class PreferencesActivity extends BaseActivity
 
   import PreferencesActivity._
 
-  private lazy val toolbar: Toolbar        = findById(R.id.toolbar)
+  private lazy val toolbar     = findById[Toolbar](R.id.toolbar)
+  private lazy val accountTabs = findById[AccountTabsView](R.id.account_tabs)
+  private lazy val accountTabsContainer = findById[FrameLayout](R.id.account_tabs_container)
 
   private lazy val backStackNavigator = inject[BackStackNavigator]
   private lazy val zms = inject[Signal[ZMessaging]]
@@ -98,25 +103,35 @@ class PreferencesActivity extends BaseActivity
         backStackNavigator.goTo(ProfileBackStackKey())
       }
 
-      backStackNavigator.currentState.on(Threading.Ui){ state =>
-        setTitle(state.nameId)
+      backStackNavigator.currentState.on(Threading.Ui){
+        case state: ProfileBackStackKey =>
+          setTitle(state.nameId)
+          accountTabsContainer.setVisibility(View.VISIBLE)
+        case state =>
+          setTitle(state.nameId)
+          accountTabsContainer.setVisibility(View.GONE)
       }
     } else {
       backStackNavigator.onRestore(findViewById(R.id.content).asInstanceOf[ViewGroup], savedInstanceState)
     }
 
-    //TODO: Investigate why the onChanged doesn't work
-    val currentAccount = currentAccountPref.signal.currentValue.flatten
-    currentAccountPref.signal.onUi { acc =>
-      if (acc != currentAccount) {
-        //startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
-        //finish()
+   ZMessaging.currentAccounts.loggedInAccounts.onUi { accs =>
+      if (accs.isEmpty) {
+        startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
+        finish()
       }
     }
 
     accentColor.on(Threading.Ui) { color =>
       getControllerFactory.getUserPreferencesController.setLastAccentColor(color.getColor())
       getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.REMOTE, color.getColor())
+    }
+
+    accountTabs.onTabClick.onUi { account =>
+      val intent = new Intent()
+      intent.putExtra(SwitchAccountExtra, account.id.str)
+      setResult(Activity.RESULT_OK, intent)
+      finish()
     }
   }
 
@@ -211,6 +226,8 @@ class PreferencesActivity extends BaseActivity
 object PreferencesActivity {
   val ShowOtrDevices   = "SHOW_OTR_DEVICES"
   val ShowAccount      = "SHOW_ACCOUNT"
+  val SwitchAccountCode = 789
+  val SwitchAccountExtra = "SWITCH_ACCOUNT_EXTRA"
 
   def getDefaultIntent(context: Context): Intent =
     new Intent(context, classOf[PreferencesActivity])

@@ -28,7 +28,6 @@ import com.waz.service.ZMessaging
 import com.waz.utils.NameParts
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.UserAccountsController
-import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.drawables.TeamIconDrawable
 import com.waz.zclient.ui.views.CircleView
 import com.waz.zclient.utils.{RichView, UiStorage, UserSignal}
@@ -44,7 +43,6 @@ class ProfileAccountTab(val context: Context, val attrs: AttributeSet, val defSt
 
   private implicit val uiStorage = inject[UiStorage]
   private val userAccountsController = inject[UserAccountsController]
-  private val accentColor = inject[AccentColorController].accentColor
 
   val icon            = findById[ImageView](R.id.team_icon)
   val iconContainer   = findById[FrameLayout](R.id.team_icon_container)
@@ -56,21 +54,26 @@ class ProfileAccountTab(val context: Context, val attrs: AttributeSet, val defSt
 
   val account = accountId.flatMap(ZMessaging.currentAccounts.storage.signal).disableAutowiring()
 
-  val selected = (for {
+  val selected = Signal(false)
+
+  val zmsSelected = (for {
     acc    <- accountId
     active <- ZMessaging.currentAccounts.activeAccountPref.signal
   } yield active.contains(acc))
     .disableAutowiring()
 
-  val teamOrUser: Signal[Either[TeamData, UserData]] = account.flatMap { acc =>
-    acc.teamId match {
-      case Right(Some(t)) => ZMessaging.currentGlobal.teamsStorage.signal(t).map(Left(_))
-      case _ => (acc.userId match {
-        case Some(id) => UserSignal(id)
-        case None     => Signal.empty[UserData]
-      }).map(Right(_))
-    }
-  }
+  zmsSelected.onUi{ selected ! _ }
+
+  val teamAndUser: Signal[(UserData, Option[TeamData])] =
+    for{
+      teamId <- account.map(_.teamId)
+      Some(userId) <- account.map(_.userId)
+      user <- UserSignal(userId)
+      team <- teamId match {
+        case Right(Some(t)) => ZMessaging.currentGlobal.teamsStorage.optSignal(t)
+        case _ => Signal.const(Option.empty[TeamData])
+      }
+    } yield (user, team)
 
   private val unreadCount = for {
     accountId <- accountId
@@ -79,15 +82,16 @@ class ProfileAccountTab(val context: Context, val attrs: AttributeSet, val defSt
 
   (for {
     s   <- selected
-    tOu <- teamOrUser
-    currentAccent <- accentColor
-  } yield (tOu, s, currentAccent)).onUi {
-    case (Right(user), s, _) =>
+    tOu <- teamAndUser
+  } yield (tOu, s)).onUi {
+    case ((user, None), s) =>
+      unreadIndicator.setAccentColor(AccentColor(user.accent).getColor)
       drawable.setBorderColor(AccentColor(user.accent).getColor)
       drawable.setInfo(NameParts.maybeInitial(user.displayName).getOrElse(""), TeamIconDrawable.UserCorners, s)
       drawable.assetId ! user.picture
-    case (Left(team), s, currentAccent) =>
-      drawable.setBorderColor(currentAccent.getColor)
+    case ((user, Some(team)), s) =>
+      unreadIndicator.setAccentColor(AccentColor(user.accent).getColor)
+      drawable.setBorderColor(AccentColor(user.accent).getColor)
       drawable.setInfo(NameParts.maybeInitial(team.name).getOrElse(""), TeamIconDrawable.TeamCorners, s)
       // TODO use team icon when ready
       drawable.assetId ! None

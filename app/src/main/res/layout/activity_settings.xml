@@ -44,7 +44,28 @@
             android:theme="?actionBarTheme"
             app:popupTheme="?actionBarPopupTheme"
             app:titleMarginStart="@dimen/wire__padding__regular"
-            />
+            >
+
+            <FrameLayout
+                android:id="@+id/account_tabs_container"
+                android:layout_width="@dimen/team_tabs_max_width"
+                android:layout_height="@dimen/teams_tab_default_height"
+                android:layout_marginEnd="@dimen/toolbar_home_icon_width"
+                android:layout_gravity="center"
+                >
+                <com.waz.zclient.views.AccountTabsView
+                    android:id="@+id/account_tabs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center"
+                    android:paddingStart="@dimen/wire__padding__12"
+                    android:paddingEnd="@dimen/wire__padding__12"
+                    android:layout_marginEnd="@dimen/wire__padding__regular"
+                    />
+            </FrameLayout>
+
+            </android.support.v7.widget.Toolbar>
 
         <FrameLayout
             android:id="@+id/content"

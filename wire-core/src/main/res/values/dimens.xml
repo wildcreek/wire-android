@@ -851,6 +851,12 @@
     <dimen name="conversation_list__badge__text_padding">8dp</dimen>
     <dimen name="conversation_list__badge__glyph_padding">10dp</dimen>
     <dimen name="conversation_list__avatar__stroke_width">0.5dp</dimen>
+    <dimen name="conversation_list__separator_height">0.5dp</dimen>
+    <dimen name="conversation_list__skeleton_title_height">12dp</dimen>
+
+    <dimen name="conversation_list__skeleton_title_margin_end_large">64dp</dimen>
+    <dimen name="conversation_list__skeleton_title_margin_end_regular">128dp</dimen>
+    <dimen name="conversation_list__skeleton_title_margin_end_small">192dp</dimen>
 
     <dimen name="teams_tab_default_height">36dp</dimen>
     <dimen name="teams_tab_width">56dp</dimen>
@@ -861,7 +867,7 @@
     <dimen name="teams_tab_text_bottom_margin">4dp</dimen>
     <dimen name="conversation_list_toolbar_height">64dp</dimen>
     <dimen name="unread_indicator_top_size">10dp</dimen>
-    <dimen name="unread_indicator_top_margin">0dp</dimen>
+    <dimen name="unread_indicator_top_margin">-10dp</dimen>
     <dimen name="unread_indicator_name_size">6dp</dimen>
     <dimen name="unread_indicator_name_margin">-10dp</dimen>
 
@@ -885,4 +891,5 @@
     <dimen name="new_cursor_button_horizontal_margin">16dp</dimen>
     <dimen name="new_cursor_button_left_margin">4dp</dimen>
     <dimen name="phone_sign_in_container_height">160dp</dimen>
+    <dimen name="settings_divider_margin_start">48dp</dimen>
 </resources>
