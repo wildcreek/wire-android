@@ -146,7 +146,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ConversationFragment extends BaseFragment<ConversationFragment.Container> implements ConversationStoreObserver,
-                                                                                                  CallingObserver,
                                                                                                   KeyboardVisibilityObserver,
                                                                                                   AccentColorObserver,
                                                                                                   ParticipantsStoreObserver,
@@ -873,17 +872,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             inflateCollectionIcon();
             cursorView.enableMessageWriting();
         }
-    }
-
-    //////////////////////////////////////////////////////////////////////////////
-    //
-    //  GroupCallingStoreObserver
-    //
-    //////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onStartCall(boolean withVideo) {
-
     }
 
     public IConversation.Type getConversationType() {
