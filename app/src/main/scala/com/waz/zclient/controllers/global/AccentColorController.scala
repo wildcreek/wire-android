@@ -32,19 +32,19 @@ class AccentColorController(implicit inj: Injector) extends Injectable {
 
   private val zms = inject[Signal[Option[ZMessaging]]]
 
-  private val self = zms.flatMap {
-    case Some(z) => z.usersStorage.optSignal(z.selfUserId)
-    case _ => Signal.const[Option[UserData]](None)
-  }
-
   private val randomColorPref = prefs.preference(PrefKey[Int]("random_accent_color", Random.nextInt(AccentColors.colors.length)))
 
-  private val userColor = self.map {
-    case Some(s) => Some(AccentColor(s.accent))
-    case _ => None
+  val accentColor: Signal[com.waz.api.AccentColor] = zms.flatMap {
+    case Some(z) => accentColor(z)
+    case _ => randomColorPref.signal.map {
+      AccentColors.colors(_)
+    }
   }
 
-  val accentColor: Signal[com.waz.api.AccentColor] = userColor.flatMap {
+  def accentColor(z: ZMessaging): Signal[com.waz.api.AccentColor] = z.usersStorage.optSignal(z.selfUserId).map {
+    case Some(u) => Some(AccentColor(u.accent))
+    case _ => None
+  }.flatMap {
     case Some(c) => Signal.const(c)
     case None => randomColorPref.signal.map {
       AccentColors.colors(_)

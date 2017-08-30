@@ -24,12 +24,14 @@ import android.text.TextUtils
 import android.view.inputmethod.EditorInfo
 import android.view.{KeyEvent, LayoutInflater, View, ViewGroup}
 import android.widget.TextView
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.verbose
 import com.waz.api.MessageContent
 import com.waz.api.impl.Conversation
-import com.waz.model.ConvId
+import com.waz.model.{AccountId, ConvId}
 import com.waz.service.ZMessaging
-import com.waz.threading.Threading
 import com.waz.utils.events.Signal
+import com.waz.utils.returning
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.core.controllers.tracking.events.notifications.{OpenedAppFromQuickReplyEvent, SwitchedMessageInQuickReplyEvent}
 import com.waz.zclient.pages.main.popup.ViewPagerLikeLayoutManager
@@ -41,28 +43,39 @@ import com.waz.zclient.{FragmentHelper, R}
 
 object QuickReplyFragment {
   private val ConvIdExtra = "EXTRA_CONVERSATION_ID"
+  private val AccountIdExtra = "EXTRA_ACCOUNT_ID"
 
-  def newInstance(convId: ConvId): Fragment = {
-    val fragment = new QuickReplyFragment
-    val args = new Bundle
-    args.putString(ConvIdExtra, convId.str)
-    fragment.setArguments(args)
-    fragment
+  def newInstance(accountId: AccountId, convId: ConvId): Fragment = {
+    returning(new QuickReplyFragment) {
+      _.setArguments(returning(new Bundle) { args =>
+        args.putString(ConvIdExtra, convId.str)
+        args.putString(AccountIdExtra, accountId.str)
+      })
+    }
   }
 }
 
 class QuickReplyFragment extends Fragment with FragmentHelper {
+  import QuickReplyFragment._
   import com.waz.threading.Threading.Implicits.Ui
 
-  lazy val zms = inject[Signal[ZMessaging]]
-  lazy val tracking = inject[GlobalTrackingController]
-  lazy val accentColor = inject[AccentColorController]
+  lazy val convId = ConvId(getArguments.getString(ConvIdExtra))
+  lazy val accountId = AccountId(getArguments.getString(AccountIdExtra))
 
-  lazy val message = view[TypefaceEditText](R.id.tet__quick_reply__message)
+  //TODO make an accounts/zms controller or something
+  lazy val zms = ZMessaging.currentAccounts.zmsInstances.map(_.find(_.accountId == accountId)).collect { case Some(z) => z }
+
+  lazy val tracking = inject[GlobalTrackingController]
+
+  lazy val accentColor = for {
+    z      <- zms
+    accent <- inject[AccentColorController].accentColor(z)
+  } yield accent
+
+  lazy val message = findById[TypefaceEditText](R.id.tet__quick_reply__message)
   lazy val layoutManager = new ViewPagerLikeLayoutManager(getContext)
 
-  lazy val convId = ConvId(getArguments.getString(QuickReplyFragment.ConvIdExtra))
-  lazy val adapter = new QuickReplyContentAdapter(getContext, convId)
+  lazy val adapter = new QuickReplyContentAdapter(getContext, accountId, convId)
 
   lazy val conv = for {
     zs <- zms
@@ -78,11 +91,14 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
 
   var subscriptions = Seq.empty[com.waz.utils.events.Subscription]
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+    verbose("onCreateView")
     inflater.inflate(R.layout.layout_quick_reply, container, false)
+  }
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     super.onViewCreated(view, savedInstanceState)
+    verbose("onViewCreated")
 
     val name: TypefaceTextView         = findById(R.id.ttv__quick_reply__name)
     val counter: TypefaceTextView      = findById(R.id.ttv__quick_reply__counter)
@@ -138,9 +154,9 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
     }
 
     subscriptions = Seq(
-      conv.map(_.displayName).on(Threading.Ui) { name.setText },
-      accentColor.accentColor.map(_.getColor()).on(Threading.Ui) { message.setAccentColor },
-      counterStr.on(Threading.Ui) { case (visible, str) =>
+      conv.map(_.displayName).onUi { name.setText },
+      accentColor.map(_.getColor()).onUi { message.setAccentColor },
+      counterStr.onUi { case (visible, str) =>
         counter.setVisible(visible)
         counter.setText(str)
       }
@@ -149,9 +165,10 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
 
   override def onResume(): Unit = {
     super.onResume()
+    verbose("onResume")
     message.postDelayed(new Runnable() {
       override def run(): Unit = {
-        Option(message.get) foreach { msg =>
+        Option(message) foreach { msg =>
           msg.requestFocus
           msg.setCursorVisible(true)
           KeyboardUtils.showKeyboard(getActivity)

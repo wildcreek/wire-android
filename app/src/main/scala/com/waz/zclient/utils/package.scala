@@ -18,9 +18,9 @@
 package com.waz.zclient
 
 import android.content.Context
-import android.content.res.TypedArray
+import android.content.res.{Resources, TypedArray}
 import android.graphics.LightingColorFilter
-import android.graphics.drawable.LayerDrawable
+import android.graphics.drawable.{Drawable, LayerDrawable}
 import android.os.Build
 import android.support.annotation.StyleableRes
 import android.support.v4.content.ContextCompat
@@ -145,12 +145,12 @@ package object utils {
     def getDimenPx(resId: Int)(implicit context: Context) = context.getResources.getDimensionPixelSize(resId)
     def getDimen(resId: Int)(implicit context: Context) = context.getResources.getDimension(resId)
 
-    def getDrawable(resId: Int)(implicit context: Context) = {
+    def getDrawable(resId: Int, theme: Option[Resources#Theme] = None)(implicit context: Context): Drawable = {
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
         //noinspection ScalaDeprecation
         context.getResources.getDrawable(resId)
       } else
-        context.getResources.getDrawable(resId, null)
+        context.getResources.getDrawable(resId, theme.orNull)
     }
 
     def getIntArray(resId: Int)(implicit context: Context) = context.getResources.getIntArray(resId)

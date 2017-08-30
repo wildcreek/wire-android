@@ -331,27 +331,23 @@ object MessageNotificationsController {
   val ConvIdExtra           = "conv_id"
 
   def CallIntent(context: Context, accountId: AccountId, convId: ConvId, requestCode: Int) =
-    Intent(context, accountId, convId, requestCode, startCall = true)
+    Intent(context, accountId, Some(convId), requestCode, startCall = true)
 
   def ReplyIntent(context: Context, accountId: AccountId, convId: ConvId, requestCode: Int) =
-    Intent(context, accountId, convId, requestCode, classOf[PopupActivity])
+    Intent(context, accountId, Some(convId), requestCode, classOf[PopupActivity])
 
   def OpenConvIntent(context: Context, accountId: AccountId, convId: ConvId, requestCode: Int) =
-    Intent(context, accountId, convId, requestCode)
+    Intent(context, accountId, Some(convId), requestCode)
 
-  def OpenAccountIntent(context: Context, accountId: AccountId, requestCode: Int = System.currentTimeMillis().toInt) = {
-    val intent = new Intent(context, classOf[MainActivity])
-      .putExtra(FromNotificationExtra,  true)
-      .putExtra(AccountIdExtra,         accountId.str)
-    PendingIntent.getActivity(context, requestCode, intent, 0)
-  }
+  def OpenAccountIntent(context: Context, accountId: AccountId, requestCode: Int = System.currentTimeMillis().toInt) =
+    Intent(context, accountId)
 
-  private def Intent(context: Context, accountId: AccountId, convId: ConvId, requestCode: Int, clazz: Class[_] = classOf[MainActivity], startCall: Boolean = false) = {
+  private def Intent(context: Context, accountId: AccountId, convId: Option[ConvId] = None, requestCode: Int = System.currentTimeMillis().toInt, clazz: Class[_] = classOf[MainActivity], startCall: Boolean = false) = {
     val intent = new Intent(context, clazz)
       .putExtra(FromNotificationExtra,  true)
       .putExtra(StartCallExtra,         startCall)
       .putExtra(AccountIdExtra,         accountId.str)
-      .putExtra(ConvIdExtra,            convId.str)
+    convId.foreach(c => intent.putExtra(ConvIdExtra, c.str))
     PendingIntent.getActivity(context, requestCode, intent, 0)
   }
 

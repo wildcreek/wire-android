@@ -21,26 +21,26 @@ import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
+import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
 import com.waz.model.ConversationData.ConversationType
-import com.waz.model.{ConvId, MessageData, MessageId}
+import com.waz.model.{AccountId, ConvId, MessageData, MessageId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.zclient.messages.RecyclerCursor
 import com.waz.zclient.messages.RecyclerCursor.RecyclerNotifier
-import com.waz.zclient.messages.{MessagesController, RecyclerCursor}
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.{StringUtils, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
-import com.waz.ZLog.ImplicitTag._
 
-class QuickReplyContentAdapter(context: Context, convId: ConvId)(implicit inj: Injector, evc: EventContext)
+class QuickReplyContentAdapter(context: Context, accountId: AccountId, convId: ConvId)(implicit inj: Injector, evc: EventContext)
 extends RecyclerView.Adapter[QuickReplyContentAdapter.ViewHolder] with Injectable { adapter =>
 
   import QuickReplyContentAdapter._
 
-  val zms = inject[Signal[ZMessaging]]
-  val listController = inject[MessagesController]
+  lazy val zms = ZMessaging.currentAccounts.zmsInstances.map(_.find(_.accountId == accountId)).collect { case Some(z) => z }
+
   val ephemeralCount = Signal(Set.empty[MessageId])
 
   var unreadIndex = 0
@@ -86,7 +86,7 @@ extends RecyclerView.Adapter[QuickReplyContentAdapter.ViewHolder] with Injectabl
   lazy val inflater = LayoutInflater.from(context)
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
-    new ViewHolder(context, convType, inflater.inflate(R.layout.layout_quick_reply_content, parent, false))
+    new ViewHolder(context, accountId, convType, inflater.inflate(R.layout.layout_quick_reply_content, parent, false))
 
   override def onBindViewHolder(holder: ViewHolder, position: Int): Unit =
     holder.message ! getItem(position).message
@@ -100,8 +100,10 @@ extends RecyclerView.Adapter[QuickReplyContentAdapter.ViewHolder] with Injectabl
 
 object QuickReplyContentAdapter {
 
-  class ViewHolder(context: Context, convType: ConversationType, itemView: View)(implicit inj: Injector, evc: EventContext)
+  class ViewHolder(context: Context, accountId: AccountId, convType: ConversationType, itemView: View)(implicit inj: Injector, evc: EventContext)
         extends RecyclerView.ViewHolder(itemView) with Injectable {
+
+    lazy val zms = ZMessaging.currentAccounts.zmsInstances.map(_.find(_.accountId == accountId)).collect { case Some(z) => z }
 
     val isGroupConv = convType == ConversationType.Group
 
