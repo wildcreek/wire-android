@@ -103,6 +103,8 @@
     <string name="new_reg_phone_budget_exhausted_title">Too many requests</string>
     <string name="new_reg_phone_budget_exhausted_message">Please try again later.</string>
     <string name="your_phone_number">Your phone number</string>
+    <string name="new_reg_phone_password_exists_header">Password exists</string>
+    <string name="new_reg_phone_password_exists_message">This account already has a password and email associated. Please login by email.</string>
 
     <string name="new_reg_phone__title__variant_1">Call, messaging, share.\nIn private or with groups.</string>
     <string name="new_reg_phone__title__variant_2">Private and secure calls,\nmessaging and sharing.</string>

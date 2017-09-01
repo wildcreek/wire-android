@@ -238,7 +238,6 @@ class MainActivity extends BaseActivity
     getStoreFactory.connectStore.removeConnectRequestObserver(this)
     getStoreFactory.profileStore.removeProfileStoreObserver(this)
     getControllerFactory.getNavigationController.removeNavigationControllerObserver(this)
-    getControllerFactory.getUserPreferencesController.setLastAccentColor(getStoreFactory.profileStore.getAccentColor)
   }
 
   override def onBackPressed(): Unit = {

@@ -93,7 +93,7 @@ class AppEntryActivity extends BaseActivity
     if (fragment != null && fragment.onBackPressed) {
       return
     }
-    super.onBackPressed()
+    abortAddAccount()
   }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
@@ -185,7 +185,7 @@ class AppEntryActivity extends BaseActivity
     enableProgress(true)
     ZMessaging.currentAccounts.loggedInAccounts.head.map { accounts =>
       accounts.headOption.fold {
-        enableProgress(false)
+        finishAfterTransition()
       } { acc =>
         ZMessaging.currentAccounts.switchAccount(acc.id).map { _ =>
           onEnterApplication(true)

@@ -90,7 +90,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
             LoginStage
         } else if (accountData.regWaiting) {
           AddNameStage
-        } else if (accountData.userId.isDefined) {
+        } else if (accountData.cookie.isDefined || accountData.accessToken.isDefined) {
           Waiting
         } else
           LoginStage
