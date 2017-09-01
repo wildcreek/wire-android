@@ -30,7 +30,6 @@ import android.support.v4.widget.TextViewCompat
 import android.support.v7.widget.{AppCompatTextView, Toolbar}
 import android.view.{MenuItem, View, ViewGroup}
 import android.widget._
-import com.waz.ZLog.ImplicitTag._
 import com.waz.api.ImageAsset
 import com.waz.content.GlobalPreferences.CurrentAccountPref
 import com.waz.content.{GlobalPreferences, UserPreferences}
@@ -47,8 +46,6 @@ import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, RingtoneUtils, ViewUtils}
 import com.waz.zclient.views.AccountTabsView
 import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
-
-import scala.concurrent.Future
 
 class PreferencesActivity extends BaseActivity
   with ActivityHelper
@@ -103,11 +100,12 @@ class PreferencesActivity extends BaseActivity
         backStackNavigator.goTo(ProfileBackStackKey())
       }
 
-      backStackNavigator.currentState.on(Threading.Ui){
-        case state: ProfileBackStackKey =>
+
+      Signal(backStackNavigator.currentState, ZMessaging.currentAccounts.loggedInAccounts.map(_.length)).on(Threading.Ui){
+        case (state: ProfileBackStackKey, c) if c > 1 =>
           setTitle(state.nameId)
           accountTabsContainer.setVisibility(View.VISIBLE)
-        case state =>
+        case (state, _) =>
           setTitle(state.nameId)
           accountTabsContainer.setVisibility(View.GONE)
       }
@@ -120,6 +118,13 @@ class PreferencesActivity extends BaseActivity
         startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
         finish()
       }
+    }
+
+    ZMessaging.currentAccounts.activeAccount.onUi {
+      case None =>
+        startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
+        finish()
+      case _ =>
     }
 
     accentColor.on(Threading.Ui) { color =>

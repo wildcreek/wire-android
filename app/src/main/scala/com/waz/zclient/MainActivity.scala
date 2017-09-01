@@ -173,7 +173,6 @@ class MainActivity extends BaseActivity
   override def onStart() = {
     info("onStart")
 
-    overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     getStoreFactory.profileStore.addProfileStoreObserver(this)
     getStoreFactory.connectStore.addConnectRequestObserver(this)
     getControllerFactory.getNavigationController.addNavigationControllerObserver(this)

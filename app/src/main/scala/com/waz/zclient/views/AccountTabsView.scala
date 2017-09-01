@@ -20,13 +20,12 @@ package com.waz.zclient.views
 import android.content.Context
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.util.AttributeSet
-import android.view.View.{OnClickListener, OnTouchListener}
+import android.view.View.OnTouchListener
 import android.view.{MotionEvent, View, ViewGroup}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.error
 import com.waz.model._
-import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, EventStream}
 import com.waz.zclient.controllers.UserAccountsController
 import com.waz.zclient.pages.main.profile.preferences.views.ProfileAccountTab
@@ -73,17 +72,6 @@ class AccountTabsAdapter(context: Context)(implicit injector: Injector, eventCon
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int) = {
     val view = new ProfileAccountTab(context)
-    /*
-    view.setOnClickListener(new OnClickListener {
-      override def onClick(v: View) = {
-        (0 until parent.getChildCount).foreach { i =>
-          parent.getChildAt(i).asInstanceOf[ProfileAccountTab].selected ! false
-        }
-        v.asInstanceOf[ProfileAccountTab].selected ! true
-        Option(v.asInstanceOf[ProfileAccountTab]).flatMap(_.account.currentValue).foreach(onItemClick ! _)
-      }
-    })
-    */
     view.setOnTouchListener(new OnTouchListener {
 
       override def onTouch(v: View, event: MotionEvent) = {

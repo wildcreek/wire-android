@@ -26,8 +26,6 @@ import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
 import com.waz.zclient.ViewHelper
 import com.waz.zclient.ui.utils.ColorUtils
-import com.waz.zclient.utils.{LayoutSpec, ViewUtils}
-import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 
 class BackgroundImageView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends ImageView(context, attrs, defStyleAttr) with ViewHelper {

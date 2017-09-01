@@ -25,9 +25,9 @@ import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.model.{AccountId, ConversationData, UserId}
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.otr.Client
+import com.waz.model.{AccountId, ConversationData}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal

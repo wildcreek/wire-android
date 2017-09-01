@@ -57,8 +57,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="@dimen/wire__padding__8"
-        android:layout_marginBottom="@dimen/preference_button_height"
+        android:layout_marginTop="@dimen/wire__padding__32"
+        android:layout_marginBottom="@dimen/wire__padding__26"
         android:layout_gravity="center_horizontal"
         >
 
@@ -77,11 +77,26 @@
         />
 
     <com.waz.zclient.pages.main.profile.preferences.views.TextButton
-        android:id="@+id/profile_notifications"
+        android:id="@+id/profile_create_team"
         android:layout_width="match_parent"
         android:layout_height="@dimen/preference_button_height"
-        app:title="Notifications"
-        app:iconStart="@string/glyph__notify"
+        app:title="@string/preferences_profile_create_team"
+        app:iconStart="@string/glyph__add_team"
+        />
+
+    <View
+        android:layout_marginStart="@dimen/settings_divider_margin_start"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/white_8"
+        />
+
+    <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+        android:id="@+id/profile_add_account"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/preference_button_height"
+        app:title="@string/preferences_profile_add_account"
+        app:iconStart="@string/glyph__add_people"
         />
 
     <View
@@ -97,22 +112,6 @@
         android:layout_height="@dimen/preference_button_height"
         app:title="@string/settings_title"
         app:iconStart="@string/glyph__settings"
-        />
-
-
-    <View
-        android:layout_marginStart="@dimen/settings_divider_margin_start"
-        android:layout_width="match_parent"
-        android:layout_height="0.5dp"
-        android:background="@color/white_8"
-        />
-
-    <com.waz.zclient.pages.main.profile.preferences.views.TextButton
-        android:id="@+id/profile_add_account"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/preference_button_height"
-        app:title="@string/preferences_profile_add_account"
-        app:iconStart="@string/glyph__add_people"
         />
 
 </LinearLayout>

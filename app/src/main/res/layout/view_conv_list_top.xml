@@ -35,42 +35,26 @@
         />
 
     <FrameLayout
-        android:layout_width="@dimen/team_tabs_max_width"
+        android:id="@+id/button_container"
+        android:layout_width="?attr/actionBarSize"
         android:layout_height="match_parent"
-        android:layout_gravity="center"
-        >
-        <com.waz.zclient.views.AccountTabsView
-            android:id="@+id/team_tabs_container"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:layout_gravity="center"
-            android:paddingStart="@dimen/wire__padding__12"
-            android:paddingEnd="@dimen/wire__padding__12"
-            />
-    </FrameLayout>
-
-    <FrameLayout
-        android:layout_width="@dimen/conversation_list__action_icon__size"
-        android:layout_height="@dimen/conversation_list__action_icon__size"
         android:layout_gravity="start|center_vertical"
-        android:layout_marginBottom="@dimen/teams_tab_text_bottom_margin"
-        android:layout_marginEnd="@dimen/conversation_list__avatar__outer_margin"
-        android:layout_marginStart="@dimen/conversation_list__avatar__outer_margin"
         >
 
         <ImageView
             android:id="@+id/conversation_list_settings"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"
-            android:layout_margin="@dimen/wire__padding__2"
+            android:layout_width="@dimen/conversation_list__action_icon__size"
+            android:layout_height="@dimen/conversation_list__action_icon__size"
+            android:layout_gravity="center_vertical|start"
+            android:layout_marginStart="@dimen/conversation_list__avatar__outer_margin"
             />
 
         <com.waz.zclient.views.GlyphButton
             android:id="@+id/conversation_list_close"
             android:layout_width="@dimen/conversation_list__action_icon__size"
             android:layout_height="@dimen/conversation_list__action_icon__size"
+            android:layout_gravity="center_vertical|start"
+            android:layout_marginStart="@dimen/conversation_list__avatar__outer_margin"
             android:text="@string/glyph__close"
             android:textSize="@dimen/wire__icon_button__text_size"
             android:textColor="@color/text__primary_dark"
@@ -94,7 +78,6 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/people_picker__border_line__height"
         android:layout_gravity="bottom"
-        android:layout_marginBottom="@dimen/teams_tab_bottom_offset"
         />
 
 </merge>

@@ -17,9 +17,10 @@
  */
 package com.waz.zclient.pages.main.profile.preferences.pages
 
-import android.app.AlertDialog
-import android.content.{Context, DialogInterface}
+import android.app.{AlertDialog, PendingIntent}
+import android.content.{Context, DialogInterface, Intent}
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.util.AttributeSet
@@ -66,7 +67,7 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val userPicture = findById[ImageView](R.id.profile_user_picture)
   val userHandleText = findById[TypefaceTextView](R.id.profile_user_handle)
   val teamNameText = findById[TypefaceTextView](R.id.profile_user_team)
-  val notificationsButton = findById[TextButton](R.id.profile_notifications)
+  val createTeamButton = findById[TextButton](R.id.profile_create_team)
   val addAccountButton = findById[TextButton](R.id.profile_add_account)
   val settingsButton = findById[TextButton](R.id.profile_settings)
 
@@ -74,8 +75,8 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   private var deviceDialog = Option.empty[AlertDialog]
 
-  notificationsButton.onClickEvent.onUi{ _ =>
-    navigator.goTo(OptionsBackStackKey())
+  createTeamButton.onClickEvent.onUi{ _ =>
+    context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.create_team_url))))
   }
 
   addAccountButton.onClickEvent.on(Threading.Ui) { _ =>
@@ -163,7 +164,7 @@ object ProfileView {
 
 case class ProfileBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
 
-  override def nameId: Int = R.string.empty_string
+  override def nameId: Int = R.string.pref_profile_screen_title
 
   override def layoutId = R.layout.preferences_profile
 
@@ -192,7 +193,7 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
 
   val team = zms.flatMap(_.teams.selfTeam)
 
-  val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{case Some(pic) => WireImage(pic)}
+  val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{ case Some(pic) => WireImage(pic) }
 
   val incomingClients = for{
     z       <- zms

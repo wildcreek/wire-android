@@ -96,7 +96,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext, ctx: 
     bmp <- asset.fold {
       Signal.const(Option.empty[Bitmap])
     } { assetData =>
-      BitmapSignal(z, asset, Single(b.width)).collect { case BitmapLoaded(bm, _) => Option(bm) }
+      BitmapSignal(z, assetData, Single(b.width)).collect { case BitmapLoaded(bm, _) => Option(bm) }
     }
   } yield bmp
 

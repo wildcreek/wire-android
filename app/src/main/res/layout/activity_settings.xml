@@ -49,7 +49,7 @@
             <FrameLayout
                 android:id="@+id/account_tabs_container"
                 android:layout_width="@dimen/team_tabs_max_width"
-                android:layout_height="@dimen/teams_tab_default_height"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="@dimen/toolbar_home_icon_width"
                 android:layout_gravity="center"
                 >
