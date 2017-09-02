@@ -35,15 +35,14 @@
 package com.waz.zclient.notifications.controllers
 
 import android.app.{Notification, NotificationManager, PendingIntent}
+import android.graphics.Bitmap
 import android.support.v4.app.NotificationCompat
 import com.waz.ZLog._
 import com.waz.bitmap.BitmapUtils
-import com.waz.model.{AccountId, AssetData, ConvId}
-import com.waz.service.assets.AssetService.BitmapResult
+import com.waz.model.{AccountId, ConvId}
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
 import com.waz.service.call.CallInfo.CallState
 import com.waz.service.call.CallInfo.CallState._
-import com.waz.service.images.BitmapSignal
 import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.Regular
 import com.waz.utils.LoggedTry
@@ -52,6 +51,7 @@ import com.waz.utils.wrappers.{Context, Intent}
 import com.waz.zclient.calling.controllers.GlobalCallingController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.IntentUtils.getNotificationAppLaunchIntent
+import com.waz.zclient.views.ImageController
 import com.waz.zclient.{Injectable, Injector, R, WireContext}
 import com.waz.zms.CallWakeService
 
@@ -68,7 +68,7 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
 
   (for {
     active <- activeCall
-    state <- callStateOpt
+    state  <- callStateOpt
   } yield (active, state)).on(Threading.Ui) {
     case (true, Some(OtherCalling)) => notificationManager.cancel(ZETA_CALL_INCOMING_NOTIFICATION_ID)
     case (true, _) => notificationManager.cancel(ZETA_CALL_ONGOING_NOTIFICATION_ID)
@@ -77,41 +77,40 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
       notificationManager.cancel(ZETA_CALL_INCOMING_NOTIFICATION_ID)
   }
 
-  //TODO use image controller when available from messages rewrite branch
-  val bitmap = zms.zip(callerData.map(_.picture)).flatMap {
-    case (zms, Some(imageId)) => zms.assetsStorage.signal(imageId).flatMap {
-      case data @ AssetData.IsImage() => BitmapSignal(zms, data, Regular(callImageSizePx))
-      case _ => Signal.empty[BitmapResult]
-    }
-    case _ => Signal.empty[BitmapResult]
-  }.map {
-    case BitmapLoaded(bmp, _) => Option(BitmapUtils.cropRect(bmp, callImageSizePx))
-    case _ => None
-  }
+  val bitmap =
+    (for {
+      z        <- zms
+      Some(id) <- callerData.map(_.picture)
+      bitmap   <- inject[ImageController].imageSignal(z, id, Regular(callImageSizePx))
+    } yield
+      bitmap match {
+        case BitmapLoaded(bmp, _) => Option(BitmapUtils.cropRect(bmp, callImageSizePx))
+        case _ => None
+      })
+    .orElse(Signal.const(Option.empty[Bitmap]))
 
   (for {
-    z <- zms
-    conv <- conversation
+    z          <- zms
+    conv       <- conversation
     callerName <- callerData.map(_.name)
-    state <- callState
-    group <- groupCall
-    video <- videoCall
-    bmp <- bitmap
+    state      <- callState
+    group      <- groupCall
+    video      <- videoCall
+    bmp        <- bitmap
   } yield (z.accountId, conv, callerName, state, group, video, bmp)).on(Threading.Ui) {
     case (account, conv, callerName, state, group, video, bmp) =>
       val message = getCallStateMessage(state, video)
       val title = if (group) getString(R.string.system_notification__group_call_title, callerName, conv.displayName) else conv.displayName
 
-      val bigTextStyle = new NotificationCompat.BigTextStyle()
-        .setBigContentTitle(conv.displayName)
-        .bigText(message)
       val builder = new NotificationCompat.Builder(cxt)
         .setSmallIcon(R.drawable.ic_menu_logo)
         .setLargeIcon(bmp.orNull)
         .setContentTitle(title)
         .setContentText(message)
         .setContentIntent(getNotificationAppLaunchIntent(cxt))
-        .setStyle(bigTextStyle)
+        .setStyle(new NotificationCompat.BigTextStyle()
+          .setBigContentTitle(conv.displayName)
+          .bigText(message))
         .setCategory(NotificationCompat.CATEGORY_CALL)
         .setPriority(NotificationCompat.PRIORITY_MAX)
 
@@ -138,8 +137,9 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
         notification
       }
 
-      def showNotification() =
+      def showNotification() = {
         notificationManager.notify(if (state != NotActive) ZETA_CALL_ONGOING_NOTIFICATION_ID else ZETA_CALL_INCOMING_NOTIFICATION_ID, buildNotification)
+      }
 
       LoggedTry(showNotification()).recover { case e =>
         error(s"Notify failed: try without bitmap. Error: $e")

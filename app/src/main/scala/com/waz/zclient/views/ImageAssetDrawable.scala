@@ -33,7 +33,6 @@ import com.waz.service.assets.AssetService.BitmapResult.{BitmapLoaded, LoadingFa
 import com.waz.service.images.BitmapSignal
 import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest
-import com.waz.ui.MemoryImageCache.BitmapRequest.Regular
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.wrappers.URI
 import com.waz.zclient.utils.Offset
@@ -311,12 +310,11 @@ class ImageController(implicit inj: Injector) extends Injectable {
     }
   }
 
-  def imageSignal(id: AssetId, width: Int, forceDownload: Boolean): Signal[BitmapResult] =
-    imageSignal(id, Regular(width), forceDownload)
-
   def imageSignal(id: AssetId, req: BitmapRequest, forceDownload: Boolean): Signal[BitmapResult] =
+    zMessaging.flatMap(imageSignal(_, id, req, forceDownload))
+
+  def imageSignal(zms: ZMessaging, id: AssetId, req: BitmapRequest, forceDownload: Boolean = true): Signal[BitmapResult] =
     for {
-      zms <- zMessaging
       data <- imageData(id)
       res <- BitmapSignal(data, req, zms.imageLoader, zms.network, zms.assetsStorage.get, zms.userPrefs.preference(UserPreferences.DownloadImagesAlways).signal, forceDownload)
     } yield res

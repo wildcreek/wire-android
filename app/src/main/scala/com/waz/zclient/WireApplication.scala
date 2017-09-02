@@ -110,6 +110,7 @@ object WireApplication {
     bind [GlobalTrackingController]        to new GlobalTrackingController()
     bind [CallingTrackingController]       to new CallingTrackingController()
     bind [PreferencesController]           to new PreferencesController()
+    bind [ImageController]                 to new ImageController()
 
 
     // common values
@@ -139,7 +140,6 @@ object WireApplication {
     bind [KeyboardController]        to new KeyboardController()
     bind [CurrentCallController]     to new CurrentCallController()
     bind [CallPermissionsController] to new CallPermissionsController()
-    bind [ImageController]           to new ImageController()
     bind [AssetsController]          to new AssetsController()
     bind [BrowserController]         to new BrowserController()
     bind [MessageViewFactory]        to new MessageViewFactory()
