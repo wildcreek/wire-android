@@ -129,15 +129,14 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
       def buildNotification = {
         val notification = builder.build
         notification.priority = Notification.PRIORITY_MAX
-        if (state != NotActive) notification.flags |= Notification.FLAG_NO_CLEAR
+        if (state != OtherCalling) notification.flags |= Notification.FLAG_NO_CLEAR
         notification
       }
 
       def showNotification() = {
         notificationManager.cancel(ZETA_CALL_INCOMING_NOTIFICATION_ID)
         notificationManager.cancel(ZETA_CALL_ONGOING_NOTIFICATION_ID)
-        if (state != NotActive)
-          notificationManager.notify(if (OtherCalling == state) ZETA_CALL_INCOMING_NOTIFICATION_ID else ZETA_CALL_ONGOING_NOTIFICATION_ID, buildNotification)
+        notificationManager.notify(if (OtherCalling == state) ZETA_CALL_INCOMING_NOTIFICATION_ID else ZETA_CALL_ONGOING_NOTIFICATION_ID, buildNotification)
       }
 
       LoggedTry(showNotification()).recover { case e =>

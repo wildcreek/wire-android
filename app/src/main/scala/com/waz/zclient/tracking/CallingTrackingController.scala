@@ -64,7 +64,7 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
 
 
   callStateOpt.onChanged {
-    case Some(st) if st != NotActive =>
+    case Some(st) =>
       verbose(s"Call state changed to: $st")
       //Calculate times now in case information gathering is delayed
       if (st == SelfJoining)

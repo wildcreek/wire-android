@@ -81,7 +81,7 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
 
   val callEnded = zmsOpt.flatMap {
     case Some(z) => callStateOpt.map {
-      case Some(NotActive) => true
+      case None => true
       case _ => false
     }
     case _ => Signal.const(true)
