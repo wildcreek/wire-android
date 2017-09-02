@@ -66,15 +66,11 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
   val callCtrler = inject[GlobalCallingController]
   import callCtrler._
 
-  (for {
-    active <- activeCall
-    state  <- callStateOpt
-  } yield (active, state)).on(Threading.Ui) {
-    case (true, Some(OtherCalling)) => notificationManager.cancel(ZETA_CALL_INCOMING_NOTIFICATION_ID)
-    case (true, _) => notificationManager.cancel(ZETA_CALL_ONGOING_NOTIFICATION_ID)
-    case (false, _) =>
+  activeCall.on(Threading.Ui) {
+    case (false) =>
       notificationManager.cancel(ZETA_CALL_ONGOING_NOTIFICATION_ID)
       notificationManager.cancel(ZETA_CALL_INCOMING_NOTIFICATION_ID)
+    case _ => //
   }
 
   val bitmap =
@@ -138,7 +134,10 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
       }
 
       def showNotification() = {
-        notificationManager.notify(if (state != NotActive) ZETA_CALL_ONGOING_NOTIFICATION_ID else ZETA_CALL_INCOMING_NOTIFICATION_ID, buildNotification)
+        notificationManager.cancel(ZETA_CALL_INCOMING_NOTIFICATION_ID)
+        notificationManager.cancel(ZETA_CALL_ONGOING_NOTIFICATION_ID)
+        if (state != NotActive)
+          notificationManager.notify(if (OtherCalling == state) ZETA_CALL_INCOMING_NOTIFICATION_ID else ZETA_CALL_ONGOING_NOTIFICATION_ID, buildNotification)
       }
 
       LoggedTry(showNotification()).recover { case e =>
